@@ -1,6 +1,38 @@
 import UIKit
 
-class CompareValueClass: Equatable, Hashable {
+struct Position: Equatable, Hashable {
+    var x: Int
+    var y: Int
+    
+    init(_ x: Int, _ y: Int) {
+        self.x = x
+        self.y = y
+    }
+}
+
+let availablePositions = [Position(0, 0), Position(0, 1), Position(1, 0)]
+let gemPosition = Position(1, 0)
+
+for position in availablePositions {
+    if gemPosition == position { // == due to conformance with equatable protocol
+        print("Gem found at (\(position.x), \(position.y))!")
+    } else {
+        print("No gem at (\(position.x), \(position.y))")
+    }
+}
+
+// to test hashable
+var visitedPositions: Set = [Position(0, 0), Position(1, 0)] // set requires conformance to Hashable
+let currentPosition = Position(1, 3)
+
+if visitedPositions.contains(currentPosition) { // requires conformance to Hashable to use this method
+    print("Already visited (\(currentPosition.x), \(currentPosition.y))")
+} else {
+    print("First time at (\(currentPosition.x), \(currentPosition.y))")
+    visitedPositions.insert(currentPosition)
+}
+
+class CompareValueClass: Hashable {
     var name: String?
     var address: String?
     
@@ -10,7 +42,8 @@ class CompareValueClass: Equatable, Hashable {
     }
     
     func hash(into hasher: inout Hasher) {
-        
+        hasher.combine(self.name)
+        hasher.combine(self.address)
     }
     
     static func ==(lhs: CompareValueClass, rhs: CompareValueClass) -> Bool {
@@ -28,29 +61,14 @@ let obj5 = CompareValueClass("Test", "KA")
 var arrayValue = [CompareValueClass]()
 arrayValue = [obj1, obj2, obj3, obj4, obj5]
 
-if obj1 == obj2 {
+if obj1 == obj2 { // needs conformance to Equatable protocol
     print("Same")
 } else {
     print("Different")
 }
 
-let values = arrayValue.filter { (compareValueObject) -> Bool in
-    return compareValueObject.address == "KA"
-}
 
-//print(values)
+// using hashable
+let test = CompareValueClass("Anks", "MH")
+print(arrayValue.contains(test)) // requires conformance to hashable because 'arrayValue' is a collection of custom type 'CompareValueClass'
 
-let conditions: [(CompareValueClass) -> Bool] = [
-{$0.name == "Test"},
-{$0.address == "KA"},
-]
-
-let result1 = arrayValue.filter({ (compareValueObject) -> Bool in
-    conditions.reduce(true) { $0 && $1(compareValueObject) }
-}).map{ $0.name }
-
-
-//let result2 = arrayValue.reduce(true) { (o1, o2) -> Bool in
-//    return o1 == o2
-//    }.map{ $0.name }
-print(result1)
